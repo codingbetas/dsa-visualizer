@@ -1,50 +1,34 @@
-# DSA Visualizer
+# DSA Visualizer 🚀
 
-An interactive web-based application to visualize common
-**Data Structures and Algorithms** step by step.
+An interactive web application to visualize common **Data Structures and Algorithms** step by step.
 
-This project is designed to help students and developers
-build strong intuition around how data structures behave
-and how algorithms execute internally.
-
----
-
-## 🔗 Live Demo
-🚧 Deployment coming soon
-
+🔗 **Live Demo:** https://dsa-visualizer-mauve-one.vercel.app/
 
 ---
 
 ## ✨ Features
-- Visualize core data structures:
-  - Arrays
-  - Stacks
-  - Queues
-  - Linked Lists
-  - Trees
-  - Graphs
-- Step-by-step execution of algorithms
-- Sorting algorithm visualizations:
-  - Bubble Sort
-  - Selection Sort
-  - Insertion Sort
-  - Quick Sort
-- Highlighted operations:
-  - Insertion
-  - Deletion
-  - Traversal
-- Clean and intuitive UI for learning
+- Visualize Arrays, Stacks, Queues, Linked Lists
+- Graph Traversals (BFS / DFS)
+- Step-by-step algorithm execution
+- Clean and interactive UI
+- Beginner-friendly learning tool
 
 ---
 
 ## 🛠 Tech Stack
-- **Frontend:** React, JavaScript, CSS
-- **Visualization:** Custom DOM-based animations
-- **Tools:** Git, GitHub
+- React
+- TypeScript
+- CSS
+- Vercel (Deployment)
 
 ---
 
-## 📦 Installation & Setup
+## 🎯 Why this project?
+This project was built to strengthen my understanding of data structures
+and algorithms by visualizing how they work internally, rather than
+simply memorizing implementations.
+
+## 🚀 Getting Started
 
 ```bash
 git clone https://github.com/codingbetas/dsa-visualizer.git
