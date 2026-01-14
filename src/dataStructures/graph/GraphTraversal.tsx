@@ -60,8 +60,8 @@ const GraphTraversal = () => {
 
       // Add neighbors to queue
       const neighbors = edges
-        .filter(edge => edge.from === current)
-        .map(edge => edge.to)
+        .filter(edge => edge.from === current || edge.to === current)
+        .map(edge => (edge.from === current ? edge.to : edge.from))
         .filter(id => !visitedOrder.includes(id) && !queue.includes(id));
       
       queue.push(...neighbors);
@@ -98,8 +98,8 @@ const GraphTraversal = () => {
 
       // Add neighbors to stack
       const neighbors = edges
-        .filter(edge => edge.from === current)
-        .map(edge => edge.to)
+        .filter(edge => edge.from === current || edge.to === current)
+        .map(edge => (edge.from === current ? edge.to : edge.from))
         .filter(id => !visitedOrder.includes(id) && !stack.includes(id));
       
       stack.push(...neighbors.reverse());

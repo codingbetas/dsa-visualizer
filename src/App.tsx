@@ -1015,40 +1015,105 @@ function App() {
     }
     
     // MERGE SORT
+    // MERGE SORT - FULL IMPLEMENTATION
     else if (algorithm === 'merge') {
-      const mergeSortSteps = (arr: number[], left: number, right: number, steps: AlgorithmStep[]) => {
+      const merge = (arr: number[], left: number, mid: number, right: number, steps: AlgorithmStep[]) => {
+        let n1 = mid - left + 1;
+        let n2 = right - mid;
+        let L = arr.slice(left, mid + 1);
+        let R = arr.slice(mid + 1, right + 1);
+
+        let i = 0, j = 0, k = left;
+
+        while (i < n1 && j < n2) {
+          comparisons++;
+          steps.push({
+            array: [...arr],
+            description: `Comparing elements from left and right sub-arrays`,
+            comparisons,
+            swaps,
+            highlighted: [left + i, mid + 1 + j],
+            operationType: 'COMPARE',
+            why: 'Comparing values to merge in sorted order',
+            invariant: 'L and R sub-arrays are individually sorted'
+          });
+
+          if (L[i] <= R[j]) {
+            arr[k] = L[i];
+            i++;
+          } else {
+            arr[k] = R[j];
+            j++;
+          }
+          
+          steps.push({
+            array: [...arr],
+            description: `Placed ${arr[k]} at index ${k}`,
+            comparisons,
+            swaps,
+            highlighted: [k],
+            operationType: 'SWAP', // Using SWAP type for visualization movement
+            why: 'Moving the smaller element into the merged array',
+            invariant: 'Elements 0 to k are now sorted relative to each other'
+          });
+          k++;
+        }
+
+        // Copy remaining elements of L[]
+        while (i < n1) {
+          arr[k] = L[i];
+          steps.push({
+            array: [...arr],
+            description: `Copying remaining element ${L[i]} from left sub-array`,
+            comparisons,
+            swaps,
+            highlighted: [k],
+            operationType: 'SWAP',
+            why: 'Left sub-array has remaining elements',
+            invariant: 'Merging remaining elements'
+          });
+          i++; k++;
+        }
+
+        // Copy remaining elements of R[]
+        while (j < n2) {
+          arr[k] = R[j];
+          steps.push({
+            array: [...arr],
+            description: `Copying remaining element ${R[j]} from right sub-array`,
+            comparisons,
+            swaps,
+            highlighted: [k],
+            operationType: 'SWAP',
+            why: 'Right sub-array has remaining elements',
+            invariant: 'Merging remaining elements'
+          });
+          j++; k++;
+        }
+      };
+
+      const mergeSortRecursive = (arr: number[], left: number, right: number, steps: AlgorithmStep[]) => {
         if (left < right) {
           const mid = Math.floor((left + right) / 2);
           
           steps.push({
             array: [...arr],
-            description: `Dividing array at midpoint ${mid}`,
+            description: `Splitting array: [${left}...${mid}] and [${mid+1}...${right}]`,
             comparisons,
             swaps,
             highlighted: Array.from({ length: right - left + 1 }, (_, i) => left + i),
             operationType: 'MERGE',
-            why: 'Divide phase - splitting array into halves',
-            invariant: 'Maintaining array bounds'
+            why: 'Divide phase: Recursively splitting the problem',
+            invariant: 'Divide and Conquer approach'
           });
-          
-          mergeSortSteps(arr, left, mid, steps);
-          mergeSortSteps(arr, mid + 1, right, steps);
-          
-          // Merge step would go here
-          steps.push({
-            array: [...arr],
-            description: `Merging sorted halves [${left},${mid}] and [${mid+1},${right}]`,
-            comparisons,
-            swaps,
-            highlighted: Array.from({ length: right - left + 1 }, (_, i) => left + i),
-            operationType: 'MERGE',
-            why: 'Combine phase - merging sorted halves',
-            invariant: 'Merged portion is sorted'
-          });
+
+          mergeSortRecursive(arr, left, mid, steps);
+          mergeSortRecursive(arr, mid + 1, right, steps);
+          merge(arr, left, mid, right, steps);
         }
       };
-      
-      mergeSortSteps(arr, 0, arr.length - 1, steps);
+
+      mergeSortRecursive(arr, 0, arr.length - 1, steps);
     }
     
     // BINARY SEARCH - FIXED!
@@ -1233,42 +1298,55 @@ function App() {
 
   // ======================== VISUALIZATION CONTROLS ========================
   
-  const startVisualization = () => {
-    if (visualizationSteps.length === 0) return;
-    
-    setIsRunning(true);
-    let stepIndex = 0;
-    
-    if (animationRef.current) {
-      clearInterval(animationRef.current);
+const startVisualization = () => {
+  if (visualizationSteps.length === 0) return;
+  
+  setIsRunning(true);
+  // If we are already at the end, start over from 0
+  let stepIndex = currentStep >= visualizationSteps.length - 1 ? 0 : currentStep;
+  
+  // 1. Safe clear: only call if current is NOT null
+  if (animationRef.current !== null) {
+    clearInterval(animationRef.current as any);
+  }
+
+  // 2. Use a local variable first, then assign to ref
+  const intervalId = setInterval(() => {
+    if (stepIndex >= visualizationSteps.length - 1) {
+      // Use the local intervalId here to avoid ref null issues
+      clearInterval(intervalId as any);
+      animationRef.current = null;
+      
+      setIsRunning(false);
+      // Force current step to the last index to be safe
+      setCurrentStep(visualizationSteps.length - 1); 
+      setStepDescription('✅ Algorithm Completed Successfully!');
+      return;
     }
 
-    animationRef.current = setInterval(() => {
-      if (stepIndex >= visualizationSteps.length) {
-        if (animationRef.current) {
-          clearInterval(animationRef.current);
-        }
-        setIsRunning(false);
-        setStepDescription('Visualization complete!');
-        return;
-      }
-
-      const step = visualizationSteps[stepIndex];
+    const step = visualizationSteps[stepIndex];
+    if (step) {
       setArray(step.array);
       setStepDescription(step.description);
       setCurrentStep(stepIndex);
-      stepIndex++;
-    }, 1000 - speed);
-  };
-
-  const stopVisualization = () => {
-    if (animationRef.current) {
-      clearInterval(animationRef.current);
-      animationRef.current = null;
     }
-    setIsRunning(false);
-    setStepDescription('Visualization stopped');
-  };
+    
+    stepIndex++;
+  }, 1000 - speed);
+
+  animationRef.current = intervalId as any;
+};
+
+const stopVisualization = () => {
+  // Use a temporary variable to satisfy the TS Overload
+  const currentId = animationRef.current;
+  if (currentId !== null) {
+    clearInterval(currentId as any);
+    animationRef.current = null;
+  }
+  setIsRunning(false);
+  setStepDescription('Visualization stopped');
+};
 
   const goToStep = (step: number) => {
     if (step >= 0 && step < visualizationSteps.length) {
@@ -1622,10 +1700,10 @@ function App() {
                   <h2 className="text-xl font-bold text-gray-800">Live Visualization</h2>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="text-sm text-gray-600">
-                    {!(algorithm === 'binarySearchTree' || algorithm === 'graphTraversal') && 
-                      `Step ${currentStep + 1} of ${visualizationSteps.length}`}
-                  </div>
+                 <div className="text-sm text-gray-600">
+                 {!(algorithm === 'binarySearchTree' || algorithm === 'graphTraversal') && 
+                   ` Step ${Math.min(currentStep + 1, visualizationSteps.length)} of ${visualizationSteps.length}`}
+                </div>
                   <button
                     onClick={() => setShowExplanation(!showExplanation)}
                     className="p-2 hover:bg-gray-100 rounded-lg transition"
@@ -1645,54 +1723,57 @@ function App() {
               
               {/* Visualization Navigation - Only for array-based algorithms */}
               {!(algorithm === 'binarySearchTree' || algorithm === 'graphTraversal') && visualizationSteps.length > 0 && (
-                <div className="mb-4 flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => goToStep(0)}
-                      disabled={currentStep === 0}
-                      className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => goToStep(currentStep - 1)}
-                      disabled={currentStep === 0}
-                      className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Previous
-                    </button>
-                  </div>
-                  
-                  <div className="flex-1 mx-4">
-                    <input
-                      type="range"
-                      min="0"
-                      max={Math.max(0, visualizationSteps.length - 1)}
-                      value={currentStep}
-                      onChange={(e) => goToStep(parseInt(e.target.value))}
-                      className="w-full"
-                      disabled={visualizationSteps.length === 0}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => goToStep(currentStep + 1)}
-                      disabled={currentStep === visualizationSteps.length - 1}
-                      className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Next
-                    </button>
-                    <button
-                      onClick={() => goToStep(visualizationSteps.length - 1)}
-                      disabled={currentStep === visualizationSteps.length - 1}
-                      className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
+  <div className="mb-4 flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => goToStep(0)}
+        disabled={currentStep === 0}
+        className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+      <button
+        onClick={() => goToStep(currentStep - 1)}
+        disabled={currentStep === 0}
+        className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Previous
+      </button>
+    </div>
+    
+    <div className="flex-1 mx-4">
+      <input
+        type="range"
+        min="0"
+        /* LOCK SLIDER: Stop at second-to-last step (Index 14 if length is 16) */
+        max={Math.max(0, visualizationSteps.length - 2)}
+        value={currentStep}
+        onChange={(e) => goToStep(parseInt(e.target.value))}
+        className="w-full"
+        disabled={visualizationSteps.length === 0}
+      />
+    </div>
+    
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => goToStep(currentStep + 1)}
+        /* LOCK NEXT: Disable when we reach Step 15 (Index 14) */
+        disabled={currentStep >= visualizationSteps.length - 2}
+        className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Next
+      </button>
+      <button
+        /* LOCK JUMP: Jump to Step 15 instead of the empty Step 16 */
+        onClick={() => goToStep(visualizationSteps.length - 2)}
+        disabled={currentStep >= visualizationSteps.length - 2}
+        className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
+    </div>
+  </div>
+)}
               
               {/* Scrollable Visualization Area - Only for array-based algorithms */}
               {!(algorithm === 'binarySearchTree' || algorithm === 'graphTraversal') && (
